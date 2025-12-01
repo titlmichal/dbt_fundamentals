@@ -1,0 +1,44 @@
+# this file is mainly about tests --> best practice to store in respective folder of the models and using the used syntax
+# these are generic tests (the built-in ones), they store the sql similarly as singular tests (e.g. unique is select from row count query)
+# generic tests are set via yml (like this): models --> model name as one item (of n items) --> columns --> name as one item (of n items) --> data_test --> one/multiple of the tests as one item of 4
+# type of generic tests:
+  # unique = checks for uniqueness (good pro primary keys)
+  # not_null = column doesnt contain any null (--//--)
+  # accepted_values --> requires more config --> colon, new row, indent, arguments, colon, new row, indent, values, colon, list of accepted value
+    # troubleshooting when failed: target dir --> compiled dir --> generic_test dir --> find the code that dbt ran --> preview it (in directory view DMs)
+    # its case SENsitive
+  # relationships = tests referential integrity; requires a bit more config too
+    # in this case (PK is customer_id in customer, FK is customer_id in orders) testing this 1:N --> is there primary key for those foreign keys?
+    # the more config: (belo the test name): identent, arguments, colon, new line, indent, to, colon, ref("table name"), new line, field, colon, name of the column
+    # = checking that EACH foreign key (customer_id) in foreign table (orders) is represented as a primary key (customer_id) in the primary/paren table (customers)
+    # its about subset --> not expecting 1:1
+
+# X singular tests are sql, custom, written by dbt user
+
+# dbtf test to run all tests
+# tests can be run on models, but here we are running on columns now
+
+models:
+  - name: stg_jaffle_shop__customers
+    columns:
+      - name: customer_id
+        data_tests:
+          - unique
+          - not_null
+  - name: stg_jaffle_shop__orders
+    columns:
+      - name: order_id
+        data_tests:
+          - unique
+          - not_null
+      - name: status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["placed", "shipped", "completed", "returned", "return_pending"]
+      - name: customer_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref("stg_jaffle_shop__customers") # what is the parent primary table
+                field: customer_id      # what is the expected primary key in the primary table

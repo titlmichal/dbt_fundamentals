@@ -1,0 +1,12 @@
+# has to be in root directory of the project
+# run dbt deps to install/check all package dependencies
+
+# codegen terminal commands:
+  # dbtf run-operation generate_source --args '{"schema_name"=  "jaffle_shop", "database_name"= "dbt-fundamentals-course-479017"}'
+    # creates source yaml file
+  # dbtf run-operation generate_base_model --args '{"source_name": "jaffle_shop", "table_name": "customers_source"}'
+    # returns stagging model sql (just a simple with source cte and select column1, column2, ...columnn from source)
+
+packages:
+  - package: dbt-labs/codegen     # this package allows to generate stg models SOURCE YAML via codegen.generate_soruce(schema_name) macro
+    version: 0.14.0               # we will run via terminal as: dbtf run-operation generate_source --args '{"schema_name"=  "jaffle_shop", "database_name"= "dbt-fundamentals-course-479017"}'
