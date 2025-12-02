@@ -14,6 +14,8 @@
     # its about subset --> not expecting 1:1
 
 # X singular tests are sql, custom, written by dbt user
+  # logics that is unique to a specific model --> run againts a model
+  # in tests dir: name of the file = name of the test in the logs
 
 # dbtf test to run all tests
 # tests can be run on models, but here we are running on columns now
@@ -42,3 +44,26 @@ models:
               arguments:
                 to: ref("stg_jaffle_shop__customers") # what is the parent primary table
                 field: customer_id      # what is the expected primary key in the primary table
+  - name: stg_jaffle_shop__payments
+    columns:
+      - name: payment_id
+        data_tests:
+          - unique
+          - not_null
+      - name: order_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref("stg_jaffle_shop__orders")
+                field: order_id
+      - name: payment_method
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["bank_transfer", "coupon", "credit_card", "gift_card"]
+      - name: status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["success", "fail"]

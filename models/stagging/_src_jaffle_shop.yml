@@ -4,6 +4,11 @@ sources:
     schema: jaffle_shop # dbt assumes that schema name is the same as name, BUT its good the be verbose + if they were different the name would be alias
     tables:   # data objects we are specifically connecting in the project --> these are used in the source macro (!)
       - name: customers_source
+        columns:
+          - name: id
+            data_tests:
+              - unique
+              - not_null
         config:
           freshness:
             warn_after: {count: 48, period: hour}  # alternative dict way to write it
@@ -23,3 +28,42 @@ sources:
           loaded_at_field: _batched_at
           freshness:
             warn_after: {count: 24, period: hour}
+
+# we can run TESTS ON SOURCES TOO --> similar config as for generic tests
+# need to choose and write which columns and how to test
+# BUT use the correct columns names from the source
+# only want to run sources? dbtf test -s source:jaffle_shop
+    # -s for short select
+    # jaffle_shop as source name
+    # or can use dbtf test --select source:*
+      # to test all sources only
+
+# we already had freshness tests, BUT technically those are NOT a test as such
+# hence they wont be run when dbtf test
+
+# its good practice to run tests on both source and stages
+  # but e.g. if I want to do some light transformations of the source, then the stage it is
+
+# best practices
+  # 1) source tests should be simple: not_null, uniquness of PKs, valid relationships with parent table, correct loaded_at values
+    # failed source test --> issue with ingestion (data integrity)
+  # 2) data model test are simple (see above; generic) but also more complex (e.g. lifetime value above 0)
+    # failed data model test --> issue with transformation/logic (transformation integrity)
+
+# dbt commands in real pipeline
+  # run = runs/builds the models
+  # test = tests the models
+  # build = combines run and test to avoid only running models that failed a test
+    # if test fails --> pipeline brakes
+    # 1) it runs tests on sources
+    # if passed --> 1) first layer (e.g. stagging) models
+    # 2) testing immideiately those models
+    # if passed --> 3) next layer ...
+    # ... 4) same pattern
+    # BUT STOPS if there is any fail
+    # (see what terminal returns when running dbtf build --> it skips the upstream DM)
+    # its 4 commands in one
+      # run
+      # test
+      # seed = loads csv into warehouse table
+      # snapshot = tracks slowly changing dimensions in data
