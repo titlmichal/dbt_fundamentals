@@ -1,4 +1,4 @@
-# this file is mainly about tests --> best practice to store in respective folder of the models and using the used syntax
+# this file is mainly about tests (*) --> best practice to store in respective folder of the models and using the used syntax
 # these are generic tests (the built-in ones), they store the sql similarly as singular tests (e.g. unique is select from row count query)
 # generic tests are set via yml (like this): models --> model name as one item (of n items) --> columns --> name as one item (of n items) --> data_test --> one/multiple of the tests as one item of 4
 # type of generic tests:
@@ -20,10 +20,28 @@
 # dbtf test to run all tests
 # tests can be run on models, but here we are running on columns now
 
+# (*) BUT DOCUMENTATION TOO!
+# once I have docs --> dbt can serve up website --> data connected to dbt catalog
+# (accessible to every stakeholder needed)
+# key components of docs (auto generated)
+  # 1) digital map of project = directed acyclic graph (DAG)
+    # shows data from source to ready models
+    # the lineage - created with ref and source macros
+  # 2) 3level descriptions within the YAML file
+    # e.g. see below or in sources YAML
+    # on source/stage/ready tables + sources/tables/columns
+    # so in this YAML and source YAMLs
+# but what if I want to a long docs?
+  # --> doc block = md file connected to YAML file
+  # need to connect them --> dependency --> doc macro
+# unfortunately VSC extension doesnt do dbtf docs generate ... (only in dbt ide studio)
+
 models:
   - name: stg_jaffle_shop__customers
+    description: this is DM description; row = one unique customer
     columns:
       - name: customer_id
+        description: this is a column description; the PK
         data_tests:
           - unique
           - not_null
@@ -34,6 +52,7 @@ models:
           - unique
           - not_null
       - name: status
+        description: '{{ doc("order_status")}}'
         data_tests:
           - accepted_values:
               arguments:
@@ -45,8 +64,10 @@ models:
                 to: ref("stg_jaffle_shop__customers") # what is the parent primary table
                 field: customer_id      # what is the expected primary key in the primary table
   - name: stg_jaffle_shop__payments
+    description: '{{ doc("payments")}}'
     columns:
       - name: payment_id
+        description: This is unique, its a PK
         data_tests:
           - unique
           - not_null
